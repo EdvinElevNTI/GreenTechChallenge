@@ -1,2 +1,2 @@
-# GreenTech Challange
+# GreenTechChallange
 ...
