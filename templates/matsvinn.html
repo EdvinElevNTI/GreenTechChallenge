@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mat</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='matsvinn_style.css') }}">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css"
+    integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+</head>
+
+<body class="m-0 p-4">
+
+  <!-- Matsvinn Calc Modal button -->
+  <h4 class="cursor-pointer cursor-pointer" data-toggle="modal" data-target="#calc">Kalkylator</h4>
+  <h4 class="cursor-pointer cursor-pointer" onclick="setYear()" data-toggle="modal" data-target="#ExpAdd">New item</h4>
+
+  <h2>Expiration List</h2>
+  <ul class="list">
+    <!-- Inside the <ul> for expiration_dict -->
+    {% for key, item in expiration_dict.items() %}
+    <li class="list-item">
+      <div class="list-item-container">
+        <button class="options-button" onmouseover="showOptions(this)" onmouseout="hideOptions(this)">⚙️</button>
+        <!-- Options for List Item -->
+        {% if expiration_dict %}
+        <ul class="options p-2" onmouseover="showOptions(this)" onmouseout="hideOptions(this)">
+
+          <!-- Edit and delete buttons -->
+          <!-- <li> -->
+          <button class="btn btn-success" onclick="openEditModal('{{ key }}', '{{ item }}')" data-toggle="modal" data-target="#edit">Edit</button>
+
+          <form action="/delete_item" method="POST">
+            <input type="hidden" name="index" value="{{ key }}">
+            <button type="submit" class="btn btn-danger">Delete</button>
+          </form>
+          <!-- </li> -->
+
+        </ul>
+        {{ item.name }}: {{ item.year }}-{{ item.month }}-{{ item.day }}
+        {% if item.note %}
+        ({{ item.note }})
+        {% endif %}
+        {% endif %}
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+
+  <!-- Warnings -->
+  <div>
+    <h2>Warnings (click for recommendation)</h2>
+    {% for key, item in expiration_dict.items() %}
+
+    {% if item.warning %}
+    <strong>
+
+      {% if item.expired == true %}
+      <button class="btn btn-danger" onclick="openRecommendModal('{{ key }}', '{{ item }}')" data-toggle="modal" data-target="#recommend">{{ item.warning }}</button>
+      {% else %}
+      <button class="btn btn-warning" onclick="openRecommendModal('{{ key }}', '{{ item }}')" data-toggle="modal" data-target="#recommend">{{ item.warning }}</button>
+      {% endif %}
+      
+      <br>
+
+    </strong>
+    {% endif %}
+
+    {% endfor %}
+  </div>
+
+
+
+  <!-- Matsvinn Calc Modal -->
+  <div class="modal fade" id="calc" tabindex="-1" role="dialog" aria-labelledby="calcLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+
+        <!-- Modal header -->
+        <div class="modal-header">
+          <h4 class="modal-title text-dark">Matsvinn Kalkylator</h4>
+          <div class="modal_close_button position-absolute cursor-pointer text-dark" data-dismiss="modal"
+            aria-label="Close">x</div>
+        </div>
+
+        <!-- Modal content -->
+        <div class="modal-body">
+          <p class="text-dark">
+
+          <form action="/matsvinn_calc_post" method="post" id="matsvinnForm">
+            <label for="number">Enter a number:</label>
+            <input type="number" id="number" name="number" min="0" max="9999" required>
+            <button type="submit">Calculate</button>
+          </form>
+          <p id="result">(Your result here)</p>
+          <p id="message"></p>
+          <br>
+          <span class="advanced-link_calc cursor-pointer text-primary">Advanced</span>
+
+          </p>
+
+          <!-- Advanced Content -->
+          <div class="advanced-content_calc d-none">
+
+            <label for="avg_weight">Average Weight (E.g 0.75 kg):</label>
+            <input type="number" id="avg_weight" name="avg_weight" value="1"><br>
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div> <!-- End of: Matsvinn Calc Modal -->
+
+  <!-- Matsvinn ExpAdd Modal -->
+  <div class="modal fade" id="ExpAdd" tabindex="-1" role="dialog" aria-labelledby="ExpAddLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+
+        <!-- Modal header -->
+        <div class="modal-header">
+          <h4 class="modal-title text-dark">Lägg till i utgångslistan</h4>
+          <div class="modal_close_button position-absolute cursor-pointer text-dark" data-dismiss="modal"
+            aria-label="Close">x</div>
+        </div>
+
+        <!-- Modal content -->
+        <div class="modal-body">
+          <p class="text-dark">
+
+          <form action="/matsvinn_exp_add_item" method="POST">
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" required><br>
+
+            <label for="year">Year:</label>
+            <input type="number" id="year" name="year" min="2000" required><br>
+
+            <label for="month">Month:</label>
+            <input type="number" id="month" name="month" min="1" max="12" required><br>
+
+            <label for="day">Day:</label>
+            <input type="number" id="day" name="day" min="1" max="31" required><br>
+
+            <label for="note">Note (optional):</label>
+            <input type="text" id="note" name="note" maxlength="50">
+            <p>(Max 50 characters)</p>
+            
+
+            <input type="submit" value="Add Item">
+
+            <br><br>
+            <span class="advanced-link_expadd cursor-pointer text-primary">Advanced</span>
+
+            </p>
+            
+            <!-- Advanced Content -->
+            <div class="advanced-content_expadd d-none">
+
+              <label for="warning_days">Warn before expiry (days):</label>
+              <input type="number" id="warning_days" name="warning_days" min="0" max="365" value="2">
+              
+              <br>
+
+              <label for="products">Välj vara (få rekommendationer):</label>
+                <select name="type" id="type">
+                  <option value="none">ingen</option>
+                  <optgroup label="Dryck">
+                    <option value="milk">Mjölk</option>
+                    <option value="juice">Juice</option>
+                  </optgroup>
+                  <optgroup label="Mat">
+                    <option value="egg">Ägg</option>
+                    <option value="cheese">Ost</option>
+                  </optgroup>
+              </select>
+              
+            </form>
+
+          </div>
+
+
+        </div>
+      </div>
+    </div>
+  </div> <!-- End of: ExpAdd Modal -->
+
+  <!-- Edit modal -->
+  <div class="modal fade" id="edit" tabindex="-1" role="dialog" aria-labelledby="editLabel" aria-hidden="true">
+
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+
+        <!-- Modal header -->
+        <div class="modal-header">
+          <h4 class="modal-title text-success">Edit</h4>
+          <div class="modal_close_button position-absolute cursor-pointer text-dark" data-dismiss="modal"
+            aria-label="Close">x</div>
+        </div>
+
+        <!-- Modal content -->
+        <div class="modal-body">
+          <p class="text-dark">
+
+          <form id="editForm" action="/edit_item" method="POST">
+            <input type="hidden" name="index" id="editIndex">
+
+            <label for="new_name">Name:</label>
+            <input type="text" id="new_name" name="new_name" required><br>
+
+            <label for="new_year">Year:</label>
+            <input type="number" id="new_year" name="new_year" required><br>
+
+            <label for="new_month">Month:</label>
+            <input type="number" id="new_month" name="new_month" required><br>
+
+            <label for="new_day">Day:</label>
+            <input type="number" id="new_day" name="new_day" required><br>
+
+            <label for="new_note">Note (optional):</label>
+            <input type="text" id="new_note" name="new_note" maxlength="50"><br>
+            <p>(Max 50 characters)</p>
+            
+            <input type="submit" value="Save Changes">
+
+            <br><br>
+            <span class="advanced-link_edit cursor-pointer text-primary">Advanced</span>
+
+            </p>
+
+            <!-- Advanced Content -->
+            <div class="advanced-content_edit d-none">
+
+              <label for="avg_weight">Warn these many days before:</label>
+              <input type="number" id="new_warning_days" name="new_warning_days" min="0" max="365">
+          
+              <br>
+
+              <label for="products">Välj vara (få rekommendationer):</label>
+                <select name="new_type" id="new_type">
+                  <option value="none">ingen</option>
+                  <optgroup label="Dryck">
+                    <option value="milk">Mjölk</option>
+                    <option value="juice">Juice</option>
+                  </optgroup>
+                  <optgroup label="Mat">
+                    <option value="egg">Ägg</option>
+                    <option value="cheese">Ost</option>
+                  </optgroup>
+              </select>
+          
+            </form>
+          
+          </div>
+        </div>
+      </div>
+    </div>
+  </div> <!-- End of: Edit Modal -->
+
+  <!-- Matsvinn Recommend Modal -->
+  <div class="modal fade" id="recommend" tabindex="-1" role="dialog" aria-labelledby="recommendLabel" aria-hidden="true">
+
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+
+        <!-- Modal header -->
+        <div class="modal-header">
+          <h4 class="modal-title text-primary">Rekommendationer</h4>
+          <div class="modal_close_button position-absolute cursor-pointer text-dark" data-dismiss="modal"
+            aria-label="Close">x</div>
+        </div>
+
+        <!-- Modal content -->
+        <div class="modal-body">
+          <p class="text-dark">
+
+            <h5>Varu-typ: <span id="current_type"></span> <span class="expiry_value" id="expiry_value"></span></h5>
+
+            <h5>Exempel på saker att göra:</h5>
+            
+            <ul id="suggestionsList">
+              
+            </ul>
+            
+        </div>
+
+        <!-- Modal footer -->
+        <div class="modal-footer justify-content-start">
+          <button class="open_delete btn btn-danger">Delete Item</button>
+
+          <!-- Confirm/Cancel delete -->
+          <div class="confirm_delete d-none">
+            
+            <p>Are you sure?</p>
+
+            <div class="d-flex">
+              
+              <button class="close_delete btn btn-danger">Cancel</button>
+
+              <button class="btn btn-success" onclick="deleteItem()">Confirm</button>
+              
+            </div>
+            
+          </div>
+          
+        </div>
+      </div>
+    </div>
+  </div> <!-- End of: Recommend Modal -->
+
+  <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+  <script src="{{ url_for('static', filename='form_handler.js') }}"></script>
+  <script src="{{ url_for('static', filename='matsvinn_script.js') }}"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+</body>
+
+</html>

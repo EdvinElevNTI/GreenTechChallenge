@@ -1,0 +1,45 @@
+/* Modal styling */
+.cursor-pointer
+{
+  cursor: pointer;
+}
+
+.modal_close_button
+{
+  cursor: pointer;
+  right: 25px;
+  top: 10px;
+  font-size: 32px;
+}
+
+.advanced-link_calc, .advanced-link_expadd, .advanced-link_edit
+{
+  cursor: pointer;
+}
+
+
+/* Add some basic styling for the options */
+.options {
+    display: none;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    position: absolute;
+    background-color: #fff;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+
+    left: 40px;
+    /* border-radius: 10%;
+    border: 1.5px black solid; */
+  }
+
+  /* Style the options as buttons */
+  .options li {
+    cursor: pointer;
+    padding: 10px;
+  }
+
+  /* Style the options on hover */
+  .options li:hover {
+    background-color: #f0f0f0;
+  }
