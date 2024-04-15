@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mat</title>
+  
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css"
+    integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/matsvinn_style.css') }}">
+  <script src="https://kit.fontawesome.com/cade5157bd.js" crossorigin="anonymous"></script>
+</head>
+
+<body>
+  <header>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-success">
+      <a class="navbar-brand" href="/">
+        <img src="static/assets/Envirospark_full_logo_white_SVG.svg" width="220" height="45" class="d-inline-block align-top" alt="">
+        </a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ml-auto nav-fill w-50">
+
+          <li class="nav-item">
+              <a class="nav-link font-weight-bold" href="/">
+                <img src="static/assets/symbol_info.png" width="30" height="30" alt="" style="opacity: 0.5;">
+                Om Oss
+              </a>
+          </li>
+
+          <li class="nav-item font-weight-bold active">
+              <a class="nav-link" href="{{ url_for('matsvinn.matsvinn')}}">
+                <img src="static/assets/symbol_matsvinn.png" width="30" height="30" alt="">
+                Matsvinn
+              </a>
+          </li>
+
+          <li class="nav-item font-weight-bold">
+            <a class="nav-link" href="{{ url_for('elpris.elpris')}}">
+              <img src="static/assets/symbol_elpriser.png" width="30" height="30" alt="" style="opacity: 0.5;">
+              Elpriser
+            </a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+  </header> 
+
+<div class="container text-center">
+  <div class="d-flex my-3"></div>
+  <h1 class="title-header">Matsvinn</h1>
+  <div class="paragraph-container">
+    <p style="text-align: center;">Välkommen till Matsvinn! Vi strävar efter att alla ska ta ett större ansvar för de onödiga 
+      mängder koldioxid och andra växthusgaser som förgäves släpps ut i atmosfären, som bidrar till 
+      den globala uppvärmningen. Målet med denna plattform är att erbjuda verktyg för att minska 
+      ditt matsvinn, och därmed minska både din miljöpåverkan och dina onödiga kostnader. Genom att 
+      använda vår kalkylator hoppas vi kunna motivera dig till att göra skillnad både för plånbok 
+      och miljö, och med hjälp av vår utgångslista hoppas vi på ett minskat matsvinn. Tillsammans 
+      kan vi arbeta mot en mer hållbar framtid.</p>
+  </div>
+
+  <!-- Matsvinn Calc Modal button -->
+  <div style="text-align: center;">
+    <button style="width:500px; height:50px; display:inline-block; font-weight:700; font-size:20px;" class="cursor-pointer btn btn-block" data-toggle="modal" data-target="#calc">Räkna ut ditt matsvinn</button>
+    </div>
+        <div class="full-exp-list-div" style="margin-top:50px;">
+          <h2 style="display: inline-block; position: relative;">Utgångslista</h2>
+            <button style="width: 70px;height: 35px;display: inline-block; margin-left: 10px; font-size:15px; position: relative; top: -4px;" onclick="setYear()" data-toggle="modal" data-target="#ExpAdd" class="cursor-pointer">Ny Vara</button>
+            <div class="d-flex my-1">          
+            </div>
+                
+          <!-- Expiration List div -->
+          <div class="exp_list_div">
+            <table>
+                {% if expiration_dict %}
+                <!-- Headings for the columns -->
+                <tr>
+                    <th>Vara</th>
+                    <th>Utgångsdatum</th>
+                    <th>Anteckningar</th>
+                </tr>
+          
+                <tr>
+                  <td colspan="4">
+                      <hr class="custom-hr">
+                  </td>
+                </tr>
+                {% endif %}
+          
+                <!-- Inside the <ul> for expiration_dict -->
+                {% for key, item in expiration_dict.items() %}
+                <tr class="list-item" id="exp_list_item_{{ key }}" data-item="{{ item }}">
+                    <td class="list-object">{{ item.name }}</td>
+                    <td class="list-object {% if item.warning %} {% if item.expired == true %}expired-text{% else %}warning-text{% endif %}{% else %}{% endif %}">
+                      {% if item.expired %}
+                          <i class="fas fa-exclamation-circle"></i>
+                      {% elif item.warning %}
+                          <i class="fas fa-exclamation-triangle"></i>
+                      {% endif %}
+                      {{ item.expiration_date.strftime('%Y/%m/%d') }}
+                  </td>
+                  
+                    <td class="list-object">{% if item.note %}{{ item.note }}{% endif %}</td>
+                    
+                    <div class="position-relative">
+                      <td class="settings_icon cursor-pointer mr-2 position-absolute pl-1" onmouseover="showOptions(this)" onmouseout="hideOptions(this)"><i class="fa-solid fa-gear" style="color: #212529;"></i></td>
+                    </div>
+                    
+                    <td class="options-container-parent">
+                      <div class="options-container p-2 d-flex align-items-center justify-content-between" onmouseover="showOptions(this)" onmouseout="hideOptions(this)">
+                          <ul class="options p-2 ml-4">
+                              <button onclick="openEditModal('{{ key }}', '{{ item }}')" data-toggle="modal" data-target="#edit" class="cursor-pointer">Redigera</button>
+                              <form action="/delete_item" method="POST">
+                                  <input type="hidden" name="index" value="{{ key }}">
+                                  <div style="margin-top:5px">
+                                    <button type="submit" class="delete-button cursor-pointer">Radera</button>
+                                  </div>
+                                  
+                              </form>
+                          </ul>
+                      </div>
+                      
+                  </td>
+                </tr>
+                    
+                {% else %}
+                <tr>
+                    <td colspan="4" class="font-weight-light"><i>Listan är tom. Klicka på 'Ny Vara' för att lägga till!</i></td>
+                </tr>
+                {% endfor %}
+            </table>
+          </div> <!-- End of: Expiration List div -->
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+  </div>
+  
+
+
+  <!-- Matsvinn Calc Modal -->
+  <div class="modal fade" id="calc" tabindex="-1" role="dialog" aria-labelledby="calcLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+
+        <!-- Modal header -->
+        <div class="modal-header">
+          <h4 class="modal-title text-dark">Matsvinn Kalkylator</h4>
+          <div class="modal_close_button position-absolute cursor-pointer text-dark" data-dismiss="modal"
+            aria-label="Close"><i class="fa-solid fa-xmark" style="color: #171717;"></i></div>
+        </div>
+
+        <!-- Modal content -->
+        <div class="modal-body">
+          <p class="text-dark">
+            Denna kalkylator uppskattar kostnaden av ditt matsvinn baserat på genomsnittliga matvanor och priser i Sverige. 
+            Ange antalet bruna matavfallspåsar  du slänger per valfri tidsperiod (vecka, månad, etc). Observera att du 
+            inte behöver inkludera påsar som inte innehåller matsvinn.
+            
+          <form action="/matsvinn_calc_post" method="post" id="matsvinnForm">
+            <label for="number">Antal matavfallspåsar:</label>
+            <input type="number" id="number" name="number" min="0" max="9999" placeholder="" required>
+            <button type="submit" class="cursor-pointer">Räkna</button>
+          </form>
+          <br>
+          <div class="w-100 d-flex justify-content-center">
+            <div class="w-75 text-center border border-dark">
+              <p id="result" class="font-weight-light pt-3" style="font-size: 1.2em;">[ Resultatet visas här ]</p>
+              <p id="message" class="font-weight-normal"></p>
+            </div>        
+          </div>
+          <br>
+          <span class="advanced-link_calc cursor-pointer text-primary pt-2">Avancerat</span>
+
+          
+        </p>
+
+          <!-- Advanced Content -->
+          <div class="advanced-content_calc d-none">
+
+            <label for="avg_weight">Snitt vikt (t.ex 0.75 kg):</label>
+            <input type="number" id="avg_weight" name="avg_weight" value="1" placeholder="">
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div> <!-- End of: Matsvinn Calc Modal -->
+
+  <!-- Matsvinn ExpAdd Modal -->
+  <div class="modal fade" id="ExpAdd" tabindex="-1" role="dialog" aria-labelledby="ExpAddLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+
+        <!-- Modal header -->
+        <div class="modal-header">
+          <h4 class="modal-title">Lägg till i utgångslistan</h4>
+          <div class="modal_close_button position-absolute cursor-pointer text-dark" data-dismiss="modal"
+            aria-label="Close"><i class="fa-solid fa-xmark" style="color: #171717;"></i></div>
+        </div>
+
+        <!-- Modal content -->
+        <div class="modal-body">
+          <p class="text-dark">
+
+          <form action="/matsvinn_exp_add_item" method="POST">
+            <div class="form-group">
+              <label for="name">Namn</label>
+              <input type="text" id="name" name="name" maxlength="50" placeholder="T.ex Mjölk" required>
+            </div>
+            <div class="form-group">
+              <label for="expiration_date">Utgångsdatum</label>
+              <input type="date" id="expiration_date" name="expiration_date" required>
+            </div>
+            <div class="form-group">
+              <label for="note">Anteckning</label>
+              <input type="text" id="note" name="note" maxlength="50" placeholder="Valfri (max 50 tecken)">
+            </div>
+            <div class="form-group">
+              <button type="submit" class="cursor-pointer">Spara</button>
+            </div>
+
+            <br>
+            <span class="advanced-link_expadd cursor-pointer text-primary">Avancerat</span>
+
+            </p>
+            
+            <!-- Advanced Content -->
+                <div class="advanced-content_expadd d-none">
+
+                  <div class="form-group" style="margin-bottom:-18px">
+                    <label for="warning_days">Varna innan utgång</label>
+                    <input type="number" id="warning_days" name="warning_days" min="0" max="365" value="2" placeholder="">
+                  </div>
+                    <label for="products" style="font-size:10px; font-weight:400;">(antal dagar)</label>
+                  <div class="form-group" style="margin-bottom:-18px">
+                    <label for="products">Välj vara</label>
+
+                      <select name="type" id="type" class="custom-select cursor-pointer">
+                        <option value="none">Ingen</option>
+                        <optgroup label="Dryck">
+                          <option value="milk">Mjölk</option>
+                          <option value="juice">Juice</option>
+                        </optgroup>
+                        <optgroup label="Mat">
+                          <option value="egg">Ägg</option>
+                          <option value="cheese">Ost</option>
+                        </optgroup>
+                    </select>
+                  </div>
+                  
+                <label for="products" style="font-size:10px; font-weight:400;">(få förslag)</label>
+
+              </div>
+              
+            </form>
+
+          </div>
+
+
+        </div>
+      </div>
+    </div>
+  </div> <!-- End of: ExpAdd Modal -->
+
+  <!-- Edit modal -->
+  <div class="modal fade" id="edit" tabindex="-1" role="dialog" aria-labelledby="editLabel" aria-hidden="true">
+
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+
+        <!-- Modal header -->
+        <div class="modal-header">
+          <h4 class="modal-title">Edit</h4>
+          <div class="modal_close_button position-absolute cursor-pointer text-dark" data-dismiss="modal"
+            aria-label="Close"><i class="fa-solid fa-xmark" style="color: #171717;"></i></div>
+        </div>
+
+        <!-- Modal content -->
+        <div class="modal-body">
+          <p class="text-dark">
+
+          <form id="editForm" action="/edit_item" method="POST">
+            <input type="hidden" name="index" id="editIndex">
+
+            <div class="form-group">
+              <label for="new_name">Namn</label>
+              <input type="text" id="new_name" name="new_name" maxlength="50" placeholder="" required>
+            </div>
+            <div class="form-group">
+              <label for="new_expiration_date">Nytt utgångsdatum</label>
+              <input type="date" id="new_expiration_date" name="new_expiration_date">
+            </div>
+            <div class="form-group">
+              <label for="new_note">Anteckning</label>
+              <input type="text" id="new_note" name="new_note" maxlength="50" placeholder="Valfri (max 50 tecken)">
+            </div>
+            <div class="form-group">
+              <button type="submit" class="cursor-pointer">Spara</button>
+            </div>
+            <br>
+            <div class="form-group">
+              <span class="advanced-link_edit cursor-pointer text-primary">Avancerat</span>
+            </div>
+            
+
+            </p>
+
+            <!-- Advanced Content -->
+            
+            <div class="advanced-content_edit d-none">
+            <div class="form-group">
+              <label for="avg_weight">Varna innan utgång (dagar)</label>
+              <input type="number" id="new_warning_days" name="new_warning_days" min="0" max="365" placeholder="">
+            </div>
+            <div class="form-group">
+              <label for="products">Välj vara (få rekommendationer)</label>
+                <select name="new_type" id="new_type" class="custom-select cursor-pointer">
+                  <option value="none">Ingen</option>
+                  <optgroup label="Dryck">
+                    <option value="milk">Mjölk</option>
+                    <option value="juice">Juice</option>
+                  </optgroup>
+                  <optgroup label="Mat">
+                    <option value="egg">Ägg</option>
+                    <option value="cheese">Ost</option>
+                  </optgroup>
+              </select>
+            </div>
+            </form>
+          
+          </div>
+        </div>
+      </div>
+    </div>
+  </div> <!-- End of: Edit Modal -->
+
+  <!-- Matsvinn Recommend Modal -->
+  <div class="modal fade" id="recommend" tabindex="-1" role="dialog" aria-labelledby="recommendLabel" aria-hidden="true">
+
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+
+        <!-- Modal header -->
+        <div class="modal-header">
+          <h4 class="modal-title">Rekommendationer</h4>
+          <div class="modal_close_button position-absolute cursor-pointer text-dark" data-dismiss="modal"
+            aria-label="Close"><i class="fa-solid fa-xmark" style="color: #171717;"></i></div>
+        </div>
+
+        <!-- Modal content -->
+        <div class="modal-body">
+
+            <h5>Varu-typ: <span id="current_type"></span></h5>
+            <h5><span class="expiry_value" id="expiry_value"></span></h5>
+
+            <h5>Exempel på saker att göra:</h5>
+            
+            <ul id="suggestionsList">
+              
+            </ul>
+            
+        </div>
+
+        <!-- Modal footer -->
+        <div class="modal-footer justify-content-start">
+          <button class="open_delete delete-button cursor-pointer">Radera</button>
+
+          <!-- Confirm/Cancel delete -->
+          <div class="confirm_delete d-none">
+            
+            <p style="font-weight: bold;">Är du säker?</p>
+
+            <div class="d-flex">
+              
+              <button class="close_delete cancel-button">Avbryt</button>
+              
+              <div style="margin-left: 10px;">
+                <button class="delete-button" onclick="deleteItem()">Radera</button>
+              </div>
+              
+            </div>
+            
+          </div>
+          
+        </div>
+      </div>
+    </div>
+  </div> <!-- End of: Recommend Modal -->
+
+  <br><br><br><br>
+
+  <footer class="bg-success text-center text-lg-start">
+
+    <!-- Copyright -->
+    <div class="text-center p-4" style="background-color: rgba(0, 0, 0, 0.2); color:white;">
+      © 2024 Copyright:
+      <span class="text-light">Allan H, Edvin L, Kevin S</span>
+    </div>
+
+  </footer>
+
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+  <script src="{{ url_for('static', filename='js/form_handler.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/matsvinn_script.js') }}"></script>
+
+</body>
+
+
+</html>

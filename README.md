@@ -1,2 +1,1 @@
-# GreenTechChallenge
-...
+# GreenTech2024

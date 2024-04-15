@@ -1,6 +1,7 @@
 
 key_value = ""; // Global variable to store the current key value
 expired = false; // Global variable to store if the current item is expired or not
+var selectedValue = ""; // Global variable to store the selected value from the filter dropdown
 
 // Auto fill current year when adding item to expiration list
 function setYear()
@@ -47,21 +48,18 @@ $(document).ready(function () {
   });
 });
 
-
 // Functions to show and hide options in expiration list when hovering
 function showOptions(element)
 {
-  var container = element.closest('.list-item-container');
-  var options = container.querySelector('.options');
-  options.style.display = 'block';
-}
-function hideOptions(element)
-{
-  var container = element.closest('.list-item-container');
-  var options = container.querySelector('.options');
-  options.style.display = 'none';
+    var options = element.querySelector('.options');
+    options.style.display = 'block';
 }
 
+function hideOptions(element)
+{
+    var options = element.querySelector('.options');
+    options.style.display = 'none';
+}
 
 // Autofill EditModal and decide index
 function openEditModal(key, item) {
@@ -72,9 +70,11 @@ function openEditModal(key, item) {
   $.getJSON('/get_item/' + key, function(item) {
     document.getElementById('editIndex').value = key;
     document.getElementById('new_name').value = item.name;
-    document.getElementById('new_year').value = item.year;
-    document.getElementById('new_month').value = item.month;
-    document.getElementById('new_day').value = item.day;
+    // Parse the expiration date string into a Date object
+    var expirationDate = new Date(item.expiration_date);
+    // Format the expiration date to YYYY-MM-DD
+    var formattedExpirationDate = expirationDate.toISOString().split('T')[0];
+    document.getElementById('new_expiration_date').value = formattedExpirationDate;
     document.getElementById('new_note').value = item.note;
     document.getElementById('new_warning_days').value = item.warning_days;
     document.getElementById('new_type').value = item.type;
@@ -82,7 +82,6 @@ function openEditModal(key, item) {
   });
 
 }
-
 
 // Autofill recommendation modal and decide suggestions
 function openRecommendModal(key, item)
@@ -105,7 +104,7 @@ function openRecommendModal(key, item)
         "Gör en dessert med mjölken! Till exempel pannacotta, glass, eller chokladmousse",
         "Baka något med mjölken! Till exempel kakor, muffins, bröd, eller pannkakor",
         "Gör en smoothie med mjölken! Till exempel med frukt, bär, eller grönsaker",
-        "Gör en sås eller soppa med mjölken! Till exempel med grönsaker, kött, eller fisk",
+        "Gör en sås eller soppa! Till exempel med grönsaker, kött, eller fisk",
         "Gör en dryck med mjölken! Till exempel chokladmjölk, varm choklad, eller drick som den är"
       ];
     }
@@ -114,11 +113,11 @@ function openRecommendModal(key, item)
       display_type = "Juice";
       suggestions =
       [
-        "a",
-        "b",
-        "c",
-        "d",
-        "e"
+        "Gör en gelé eller geleé med juice! Till exempel med citrusfrukter, äpple eller hallon.",
+        "Blanda juice i marinader eller glaze! Perfekt för kött eller grönsaker.",
+        "Skapa sorbet eller granita med juice! Uppfriskande och läckert på varma dagar.",
+        "Använd juice i dressings eller vinaigrettes! Ge salladen extra smak.",
+        "Gör mocktails eller cocktails med juice! För en läcker och alkoholfri dryck."
       ];
     }
     else if (display_type == "egg")
@@ -126,11 +125,11 @@ function openRecommendModal(key, item)
       display_type = "Ägg";
       suggestions = 
       [
-        "a",
-        "b",
-        "c",
-        "d",
-        "e"
+        "Gör en dessert med ägg! Till exempel crème brûlée, mousse au chocolat eller tiramisu.",
+        "Baka något med ägg! Till exempel kakor, muffins, bröd eller quiche.",
+        "Gör en omelett med ägg! Till exempel med grönsaker, ost eller skinka.",
+        "Gör en sås med ägg! Till exempel hollandaise, bearnaise eller aioli.",
+        "Gör en dryck med ägg! Till exempel äggnog, pisco sour eller smoothie med ägg."
       ];
     }
     else if (display_type == "cheese")
@@ -138,11 +137,11 @@ function openRecommendModal(key, item)
       display_type = "Ost";
       suggestions = 
       [
-        "a",
-        "b",
-        "c",
-        "d",
-        "e"
+        "Gör en aptitretare med ost! Till exempel ostbricka, ostbollar eller ostpinnar.",
+        "Baka något med ost! Till exempel paj, ostbröd eller ostkringlor.",
+        "Gör en sallad med ost! Till exempel grekisk sallad, caprese eller cobb-sallad.",
+        "Gör en sås med ost! Till exempel ost- och skinksås, ostfondue eller ostgratäng.",
+        "Gör en dryck med ost! Till exempel ostsmoothie, ostte eller glögg med ost."
       ];
     }
     else
@@ -150,29 +149,38 @@ function openRecommendModal(key, item)
       display_type = "Ingen";
       suggestions =
       [
-        "Ingen rekommendation tillgänglig för denna typ av produkt.\nRedigera produkttypför varan för att få rekommendationer (advanced settings)"
+        "Ingen rekommendation tillgänglig för denna typ av produkt.\nRedigera produkttypför varan för att få rekommendationer (avancerade inställningar)"
       ];
     }
 
-    // Check if item is expired
+    // Check if item is expired and decide message and color
     var expired = item.expired;
+    var warning = item.warning;
     var expiry_value;
-    if (expired == true)
-    {
-      expiry_value = "(Varning: Har gått ut)";
-      $(".expiry_value").addClass("text-danger");
-    }
-    else
-    {
-      expiry_value = "(Har inte gått ut än)";
-      $(".expiry_value").addClass("text-warning");
-    }
-    console.log(expiry_value)
-    // Add text and suggestions to modal
-    document.getElementById('current_type').textContent = display_type;
-    document.getElementById('expiry_value').textContent = expiry_value;
 
-    // Create list items for suggestions
+    if (expired == true) {
+        expiry_value = "<i class='fas fa-exclamation-circle'></i> (Varning: Har gått ut)"; // Icon for expired
+        $(".expiry_value").removeClass("warning-text");
+        $(".expiry_value").addClass("expired-text");
+    } else if (warning != null) {
+        expiry_value = "<i class='fas fa-exclamation-triangle'></i> (Varning: Går ut snart)"; // Icon for warning
+        $(".expiry_value").removeClass("expired-text");
+        $(".expiry_value").addClass("warning-text");
+    } else {
+        expiry_value = ""; // No icon needed for no warning
+        $(".expiry_value").removeClass("expired-text");
+        $(".expiry_value").removeClass("warning-text");
+    }
+
+    $(".expiry_value").html(expiry_value); // Update HTML content with the icon
+
+
+    console.log(expiry_value)
+    
+    // Add or update text and suggestions to modal
+    document.getElementById('current_type').textContent = display_type;
+
+    // Create list items for each one in suggestions array
     for (var i = 0; i < suggestions.length; i++)
     {
       var listItem = document.createElement("li");
@@ -184,8 +192,7 @@ function openRecommendModal(key, item)
   });
 }
 
-
-// Function to delete items from recommend modal
+// Function to delete items from inside of recommend modal
 function deleteItem() {
 
   var key = Number(key_value);
@@ -202,3 +209,44 @@ function deleteItem() {
     }
   });
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+  var triggerElements = document.querySelectorAll('.list-item');
+
+  triggerElements.forEach(function(element) {
+      // Exclude the settings button and options container and its children from the hoverable elements
+      if (!element.classList.contains('settings_icon') && !element.classList.contains('options-container-parent')) {
+          // Add event listener for hover effect to the parent element
+          element.addEventListener('mouseover', function(event) {
+              // Check if the event target or its ancestors contain the options-container class
+              if (!event.target.closest('.settings_icon') && !event.target.closest('.options-container-parent')) {
+                  var children = this.children;
+                  for (var i = 0; i < children.length; i++) {
+                      children[i].classList.add('hovered');
+                  }
+              }
+          });
+
+          element.addEventListener('mouseout', function(event) {
+              // Check if the event target or its ancestors contain the options-container class
+              if (!event.target.closest('.settings_icon') && !event.target.closest('.options-container-parent')) {
+                  var children = this.children;
+                  for (var i = 0; i < children.length; i++) {
+                      children[i].classList.remove('hovered');
+                  }
+              }
+          });
+
+          element.addEventListener('click', function(event) {
+              // Check if the event target or its ancestors contain the options-container class
+              if (!event.target.closest('.settings_icon') && !event.target.closest('.options-container-parent')) {
+                  // Extract key and item data from the element's id or other attributes
+                  var key = this.getAttribute('id').split('_')[3]; // Extract the key from the id
+                  var itemData = this.getAttribute('data-item'); // Extract item data from a custom attribute if available
+                  openRecommendModal(key, itemData);
+                  $('#recommend').modal('show');
+              }
+          });
+      }
+  });
+});

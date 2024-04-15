@@ -1,0 +1,125 @@
+.flex{
+    display: flex;
+    flex: 0 0 1;
+    flex-wrap: wrap;
+    
+}
+
+
+.navbar-nav .nav-item .nav-link {
+    font-size: 14px;
+    font-weight: 700;
+}
+/* Style for the spans */
+.company-spans {
+    display: flex;
+    align-items: center; /* Center items vertically */
+}
+
+.company-spans .whitetxt {
+    margin-left: 5px; /* Add space between the green and the number */
+}
+
+.whitetxt{
+    
+    color: white;
+    padding: 3px;
+}
+
+
+
+/* sr container */
+/* Positioning the extremist text */
+#extremist-text {
+    display: block;
+    text-align: right;
+    margin-top: 10px; /* Adjust as needed */
+}
+
+/* Styles for the slider */
+.slidecontainer {
+    width: 80%;
+    margin: 20px auto;
+    text-align: left; /* Align the slider and text to the left */
+}
+
+/* Slider track */
+.slider__range {
+    width: 100%; /* Full width */
+    -webkit-appearance: none; /* Remove default styles */
+    appearance: none;
+    height: 5px; /* Height of the track */
+    background: #d3d3d3; /* Gray background */
+    outline: none; /* Remove outline */
+    border-radius: 10px; /* Rounded corners */
+    margin: 10px 0; /* Add some margin for spacing */
+}
+
+/* Slider thumb (handle) */
+.slider__range::-webkit-slider-thumb {
+    -webkit-appearance: none; /* Remove default styles */
+    appearance: none;
+    width: 20px; /* Width of the thumb */
+    height: 20px; /* Height of the thumb */
+    background: #4CAF50; /* Green background */
+    border-radius: 50%; /* Rounded shape */
+    cursor: pointer; /* Cursor on hover */
+}
+
+.slider__range::-moz-range-thumb {
+    width: 20px; /* Width of the thumb */
+    height: 20px; /* Height of the thumb */
+    background: #4CAF50; /* Green background */
+    border: none; /* No border */
+    border-radius: 50%; /* Rounded shape */
+    cursor: pointer; /* Cursor on hover */
+}
+.flex {
+    display: flex;
+    flex-wrap: wrap; /* Allow items to wrap to the next line */
+    margin-right: 2%;
+}
+
+.container1 {
+    height: 5%;
+    width: 100%;
+    display: flex; /* Ensure container1 is also a flex container */
+    justify-content: center; /* Distribute items evenly along the main axis */
+    align-items: center; /* Center items vertically */
+    max-width: 800px;
+    margin: auto;
+}
+
+.bubble {
+    border-radius: 10px;
+    height: auto; /* Adjust height to fit content */
+    width: auto; /* Adjust width to fit content */
+    text-align: center;
+    background-color: #188754;
+    padding: 5px 10px; /* Add padding for better appearance */
+    margin: 5px; /* Add margin between bubbles */
+}
+
+.paragraph {
+    margin-top: 5%;
+    background-color: #f0f0f0;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.paragraph h1 {
+    text-align: center;
+    font-weight: bolder;
+   
+}
+
+.paragraph .intro {
+    text-align: justify;
+    color: #555; /* Dark gray color for a subtle appearance */
+    font-size: 18px; /* Slightly larger font size for emphasis */
+    line-height: 1.6; /* Slightly increased line height for better readability */
+    margin-top: 20px; /* Increased top margin for better spacing */
+    padding: 0 20px; /* Add padding to the sides for a framed appearance */
+    border-left: 4px solid #188754; /* Add a left border for emphasis */
+}

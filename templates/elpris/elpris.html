@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cost Graph</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+
+    <link rel="stylesheet" href="static/css/elpris.css">
+</head>
+
+<body>
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-success">
+          <a class="navbar-brand" href="/">
+            <img src="static/assets/Envirospark_full_logo_white_SVG.svg" width="220" height="45" class="d-inline-block align-top" alt="">
+            </a>
+          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ml-auto nav-fill w-50">
+    
+              <li class="nav-item">
+                  <a class="nav-link font-weight-bold" href="/" onclick="scrollToBottom()">
+                    <img src="static/assets/symbol_info.png" width="30" height="30" alt="" style="opacity: 0.5;">
+                    Om Oss
+                  </a>
+              </li>
+    
+              <li class="nav-item font-weight-bold">
+                  <a class="nav-link" href="{{ url_for('matsvinn.matsvinn')}}">
+                    <img src="static/assets/symbol_matsvinn.png" width="30" height="30" alt="" style="opacity: 0.5;">
+                    Matsvinn
+                  </a>
+              </li>
+    
+              <li class="nav-item font-weight-bold active">
+                <a class="nav-link" href="{{ url_for('elpris.elpris')}}">
+                  <img src="static/assets/symbol_elpriser.png" width="30" height="30" alt="">
+                  Elpriser
+                </a>
+              </li>
+            </ul>
+          </div>
+        </nav>
+      </header> 
+   
+<div class="paragraph" >
+
+    <h1 style="text-align: center; font-weight: bolder;">Välkommen till elpriser!</h1>
+    <p class="intro">Denna sida presenterar vilka priser / KWh som gäller inom marknaden just nu! Den visar även miljöutsläppet i gram CO2 / KWh så att du som individ kan välja det bästa företag för både miljö och plånbok!</p>
+    <p class="intro">Längst ner så kan du se medelvärden för företagen som du har valt med hjälp av dragfunktionen. Dragfunktionen, alltså slidern, räknar ut det billigaste företaget baserat på hur mycket miljö eller pris du väljer att ha i åtanke.</p>
+</div>
+ 
+    <div class="slidecontainer">
+        <span>Miljö</span>
+        <input type="range" min="0" max="100" value="0" class="slider__range" id="slider">
+        <span id="extremist-text">Pris</span>
+        <div class="slider__bar" id="slider-bar">
+
+        </div>
+    </div>
+   
+    </div>
+    
+    
+    <div style="width: 100%; height: 500px;">
+        <canvas id="myChart"></canvas>
+    </div>
+
+    <div>
+        <h1 style="text-align: center; margin-bottom: 2%;">Medelvärden</h1>
+    </div>
+    <div id="mean-values">
+        
+
+    <div class="container1 flex">
+        <div class="flex">    
+        <p class="bubble whitetxt">GreenCo Kostnad:</p> <span id="mean-foretag1-kostnad" class="company-spans"> </span>
+        </div> 
+        <div class="flex"> 
+        <p class="bubble whitetxt">GreenCo Miljö:</p> <span id="mean-foretag1-miljo" class="company-spans"> </span>
+         </div>
+        <div class="flex">
+        <p class="bubble whitetxt">NoEcoCo Kostnad:</p> <span id="mean-foretag2-kostnad" class="company-spans"> </span>
+         </div>
+        <div class="flex"> 
+            <p class="bubble whitetxt">NoEcoCo Miljö:</p> <span id="mean-foretag2-miljo" class="company-spans"> </span>
+        </div>
+        </div>
+    </div>
+    
+<!-- Footer -->
+<footer class="bg-success text-center text-lg-start" style="margin-top:2%">
+
+    <!-- Copyright -->
+    <div class="text-center p-4" style="background-color: rgba(0, 0, 0, 0.2); color:white;">
+      © 2024 Copyright:
+      <span class="text-light">Allan H, Edvin L, Kevin S</span>
+    </div>
+
+</footer>
+    <script>
+        const socket = io(); // Establish a connection to the server
+
+        socket.on('mean_update', function(mean_values) {
+
+            console.log('Mean values:', mean_values);
+            console.log('documentthing:', document.getElementById('mean-foretag1-kostnad').textContent);
+            console.log('thirdthing:', mean_values['Företag 1 Kostnad']);
+            // Update the displayed mean values
+            document.getElementById('mean-foretag1-kostnad').textContent = mean_values['Företag 1 Kostnad'];
+            document.getElementById('mean-foretag1-miljo').textContent = mean_values['Företag 1 Miljö'];
+            document.getElementById('mean-foretag2-kostnad').textContent = mean_values['Företag 2 Kostnad'];
+            document.getElementById('mean-foretag2-miljo').textContent = mean_values['Företag 2 Miljö'];
+
+            // Calculate the total of all mean values
+            var total = mean_values['Företag 1 Kostnad'] + mean_values['Företag 1 Miljö'] + mean_values['Företag 2 Kostnad'] + mean_values['Företag 2 Miljö'];
+
+            // Calculate the percentage of each mean value out of the total
+            var climateFriendlyPercentage = (mean_values['Företag 1 Kostnad'] / total) * 100;
+            var balancedClimatePercentage = (mean_values['Företag 1 Miljö'] / total) * 100;
+            var foretag2Percentage = (mean_values['Företag 2 Kostnad'] / total) * 100;
+            var foretag2_miljo_percentage = (mean_values['Företag 2 Miljö'] / total) * 100;
+
+            slider.addEventListener('input', function() {
+                var value = slider.value;
+
+                // Calculate the absolute difference between the slider value and each mean value
+                var climateFriendlyDifference = Math.abs(value - climateFriendlyPercentage);
+                var balancedClimateDifference = Math.abs(value - balancedClimatePercentage);
+                var foretag2Difference = Math.abs(value - foretag2Percentage);
+                var foretag2_miljo_difference = Math.abs(value - foretag2_miljo_percentage);
+
+                // Find the smallest difference
+                var smallestDifference = Math.min((climateFriendlyDifference + balancedClimateDifference)/2, (foretag2Difference + foretag2_miljo_difference)/2);
+
+                // Ska fixa så att den inte bara tar den närmaste grafen, att den istället räknar ut vilken som är miljövänligast / prisvärdigast
+                var pris1
+                var miljo1
+                
+                var pris2
+                var miljo2
+
+                console.log('for 1 price: ',climateFriendlyDifference, ' for 1 miljo: ', balancedClimateDifference, ' for 2 price: ', foretag2Difference, ' for 2 miljo', foretag2_miljo_difference, ' smallest dif: ', smallestDifference)
+                // Show the graph with the smallest difference
+                if (smallestDifference === (climateFriendlyDifference + balancedClimateDifference)/2) {
+                    myChart.data.datasets[0].hidden = false;
+                    myChart.data.datasets[1].hidden = false;
+                    myChart.data.datasets[2].hidden = true;
+                    myChart.data.datasets[3].hidden = true;
+                } else if (smallestDifference === (foretag2Difference + foretag2_miljo_difference)/2) {
+                    myChart.data.datasets[0].hidden = true;
+                    myChart.data.datasets[1].hidden = true;
+                    myChart.data.datasets[2].hidden = false;
+                    myChart.data.datasets[3].hidden = false;
+                } 
+
+
+                
+
+// Add an event listener for the 'input' event on the slider
+slider.addEventListener('input', function() {
+    var value = slider.value;
+
+    // Calculate the absolute difference between the slider value and each mean value
+    var climateFriendlyDifference = Math.abs(value - climateFriendlyPercentage);
+    var balancedClimateDifference = Math.abs(value - balancedClimatePercentage);
+    var foretag2Difference = Math.abs(value - foretag2Percentage);
+    var foretag2_miljo_difference = Math.abs(value - foretag2_miljo_percentage);
+
+    // Find the smallest difference
+    var smallestDifference = Math.min(climateFriendlyDifference + balancedClimateDifference, foretag2Difference + foretag2_miljo_difference);
+
+    // Show or hide the specified HTML elements based on the smallest difference
+    if (smallestDifference === (climateFriendlyDifference + balancedClimateDifference)) {
+        document.getElementById('mean-foretag1-kostnad').parentNode.style.display = 'flex';
+        document.getElementById('mean-foretag1-miljo').parentNode.style.display = 'flex';
+        document.getElementById('mean-foretag2-kostnad').parentNode.style.display = 'none';
+        document.getElementById('mean-foretag2-miljo').parentNode.style.display = 'none';
+    } else if (smallestDifference === (foretag2Difference + foretag2_miljo_difference)) {
+        document.getElementById('mean-foretag1-kostnad').parentNode.style.display = 'none';
+        document.getElementById('mean-foretag1-miljo').parentNode.style.display = 'none';
+        document.getElementById('mean-foretag2-kostnad').parentNode.style.display = 'flex';
+        document.getElementById('mean-foretag2-miljo').parentNode.style.display = 'flex';
+    } 
+
+    // Update the chart
+    myChart.update();
+});
+
+
+
+
+
+
+ 
+    myChart.update();
+});
+        });
+
+        var slider = document.getElementById('slider');
+        var indicator = document.getElementById('slider-indicator');
+
+        // Add an event listener for the 'input' event on the slider
+        slider.addEventListener('input', function() {
+            var value = slider.value;
+        
+            indicator.textContent = value + '%';
+        
+
+        
+            myChart.update();
+        });
+
+        let myChart; // Declare the chart variable outside the function
+
+        function initializeChart(data) {
+            console.log("initializeChart called");
+            const ctx = document.getElementById('myChart').getContext('2d');
+            const labels = Object.values(data)[0].map(item => new Date(item[0])); // Parse the dates
+
+            const datasets = Object.entries(data).map(([climate_type, cost_data]) => ({
+                label: climate_type,
+                data: cost_data.map(item => ({ x: new Date(item[0]), y: item[1] })),
+                fill: false,
+            }));
+
+            myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: datasets,
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false, // Add this line
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                unit: 'hour',
+                                displayFormats: {
+                                    hour: 'HH:mm'
+                                }
+                            },
+                            min: labels[0],  // Set the minimum value to the first label
+                            max: labels[labels.length - 1],  // Set the maximum value to the last label
+                            title: {
+                                display: true,
+                                text: 'Time'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Cost'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        const maxPoints = 24;  // Set this to your desired maximum number of points
+
+
+        function addData(climate_type, cost, time) {
+            console.log("addData called");
+            const datasetIndex = myChart.data.datasets.findIndex(ds => ds.label === climate_type);
+            if (datasetIndex !== -1) {
+                const dataset = myChart.data.datasets[datasetIndex];
+        
+                dataset.data.push({ x: new Date(time), y: cost });
+        
+                // If the number of data points exceeds the maximum, remove the oldest point
+                if (dataset.data.length > maxPoints) {
+                    dataset.data.shift();
+                }
+        
+                // Sort the data by time
+                dataset.data.sort((a, b) => a.x - b.x);
+        
+                // Update the x axis maximum value to the time of the newest data point
+                myChart.options.scales.x.max = dataset.data[dataset.data.length - 1].x;
+        
+                // Update the x axis minimum value to the time of the oldest data point
+                myChart.options.scales.x.min = dataset.data[0].x;
+        
+                myChart.update();
+
+                const lastDataPoint = dataset.data[dataset.data.length - 1];
+    localStorage.setItem('lastDataPointTime', lastDataPoint.x);
+            }
+        }
+
+        // Listen for "cost_update" events from the server
+        socket.on("cost_update", function (data) {
+            console.log("Cost update received:", data);
+            if (myChart) {
+                addData(data.climate_type, data.cost, data.time);
+            }
+        });
+
+        // Initial fetch of data to populate the chart
+        fetch('/cost_data')
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+                initializeChart(data);
+            });
+    </script>
+</body>
+
+</html>

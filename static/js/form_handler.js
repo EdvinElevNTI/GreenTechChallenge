@@ -21,6 +21,7 @@ async function postData(event)
         
         const responseData = await response.json();
         const resultElement = document.getElementById('result');
+        resultElement.classList.add('font-weight-bold', 'text-warning');
         resultElement.textContent = responseData.result; // Display the result
         
         const messageElement = document.getElementById('message');
